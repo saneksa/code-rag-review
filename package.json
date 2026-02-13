@@ -1,0 +1,31 @@
+{
+  "name": "code-rag-review",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local RAG indexing for codebases and code review using local LLMs",
+  "bin": {
+    "code-rag": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc --noEmit -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "index": "tsx src/cli.ts index",
+    "review": "tsx src/cli.ts review",
+    "search": "tsx src/cli.ts search",
+    "test": "npm run build && node --test dist/**/*.test.js"
+  },
+  "dependencies": {
+    "@lancedb/lancedb": "^0.26.2",
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
