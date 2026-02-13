@@ -4,6 +4,7 @@ import { Command } from "commander";
 import { buildIndex } from "./indexer.js";
 import { runReview } from "./review.js";
 import { searchIndex } from "./search.js";
+import type { ChunkingMode } from "./chunker.js";
 
 const program = new Command();
 
@@ -30,6 +31,13 @@ function collectList(value: string, current: string[]): string[] {
   return [...current, ...values];
 }
 
+function parseChunkingMode(value: string): ChunkingMode {
+  if (value === "ast" || value === "text") {
+    return value;
+  }
+  throw new Error("--chunking must be one of: ast, text");
+}
+
 program
   .name("code-rag")
   .description("RAG indexing of codebases + local code review with Ollama")
@@ -48,6 +56,12 @@ program
     "--embedding-model <name>",
     "embedding model name",
     DEFAULT_EMBED_MODEL,
+  )
+  .option(
+    "--chunking <mode>",
+    "chunking mode: ast or text",
+    parseChunkingMode,
+    "ast",
   )
   .option(
     "--chunk-size <chars>",
@@ -86,6 +100,7 @@ program
       repoRoot,
       indexDir: options.indexDir,
       embeddingModel: options.embeddingModel,
+      chunkingMode: options.chunking,
       chunkSize: options.chunkSize,
       overlapLines: options.overlapLines,
       maxFileSizeBytes: options.maxFileSizeKb * 1024,
@@ -200,8 +215,10 @@ program
 
     for (const item of result.results) {
       const preview = item.chunk.content.replace(/\s+/g, " ").slice(0, 180);
+      const symbol = item.chunk.symbol ? ` symbol=${item.chunk.symbol}` : "";
+      const nodeType = item.chunk.nodeType ? ` node=${item.chunk.nodeType}` : "";
       console.log(
-        `${item.score.toFixed(4)}  ${item.chunk.path}:${item.chunk.startLine}-${item.chunk.endLine}\n${preview}\n`,
+        `${item.score.toFixed(4)}  ${item.chunk.path}:${item.chunk.startLine}-${item.chunk.endLine}${nodeType}${symbol}\n${preview}\n`,
       );
     }
   });

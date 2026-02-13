@@ -36,9 +36,19 @@ export interface ReviewResult {
 
 function formatChunkForPrompt(result: RetrievalResult): string {
   const chunk = result.chunk;
+  const meta = [
+    `Language: ${chunk.language}`,
+    `Chunking: ${chunk.chunkingStrategy}`,
+    chunk.nodeType ? `NodeType: ${chunk.nodeType}` : "",
+    chunk.symbol ? `Symbol: ${chunk.symbol}` : ""
+  ]
+    .filter(Boolean)
+    .join("\n");
+
   return [
     `Score: ${result.score.toFixed(4)}`,
     `Path: ${chunk.path}:${chunk.startLine}-${chunk.endLine}`,
+    meta,
     "```",
     chunk.content,
     "```"

@@ -5,6 +5,7 @@
 ## Что умеет
 
 - Индексирует репозиторий в локальную LanceDB (`.coderag/`).
+- Чанкает код по AST для JS/TS (TypeScript Compiler API), для остальных языков — fallback на текстовые чанки.
 - Переиспользует эмбеддинги неизмененных чанков между переиндексациями.
 - Достает релевантный контекст по diff/запросу через ANN-поиск LanceDB.
 - Делает code review на локальной LLM через Ollama.
@@ -14,14 +15,14 @@
 - Node.js 20+
 - [Ollama](https://ollama.com/)
 - Локальные модели:
-  - эмбеддинги: `nomic-embed-text`
-  - ревью: например `qwen2.5-coder:7b`
+  - эмбеддинги: `nomic-embed-text-v2-moe:latest`
+  - ревью: например `qwen3:8b`
 
 Пример установки моделей:
 
 ```bash
-ollama pull nomic-embed-text
-ollama pull qwen2.5-coder:7b
+ollama pull nomic-embed-text-v2-moe:latest
+ollama pull qwen3:8b
 ```
 
 ## Установка
@@ -36,13 +37,13 @@ npm run build
 1. Построить индекс:
 
 ```bash
-npm run index -- --repo . --embedding-model nomic-embed-text
+npm run index -- --repo . --embedding-model nomic-embed-text-v2-moe:latest
 ```
 
 2. Сделать ревью текущего `git diff`:
 
 ```bash
-npm run review -- --repo . --review-model qwen2.5-coder:7b --show-sources
+npm run review -- --repo . --review-model qwen3:8b --show-sources
 ```
 
 3. Проверить retrieval вручную:
@@ -54,6 +55,7 @@ npm run search -- --query "auth middleware race condition"
 ## Полезные параметры
 
 - `index`:
+  - `--chunking ast|text` (по умолчанию `ast`)
   - `--chunk-size 1400`
   - `--overlap-lines 20`
   - `--max-file-size-kb 300`
@@ -75,7 +77,9 @@ npm run search -- --query "auth middleware race condition"
 ## Как это работает
 
 1. Сканирование текстовых файлов в репозитории (бинарники и большие файлы пропускаются).
-2. Чанкинг по строкам с overlap.
+2. Чанкинг:
+   - `ast` для JS/TS файлов (function/class/method и другие declaration-узлы),
+   - `text` fallback для неподдерживаемых языков.
 3. Эмбеддинги каждого чанка через Ollama.
 4. Чанки и эмбеддинги сохраняются в LanceDB таблицу `code_chunks` + `manifest.json`.
 5. По запросу/диффу строится embedding и выбираются top-K чанков через `vectorSearch`.
@@ -88,4 +92,4 @@ npm run search -- --query "auth middleware race condition"
 
 - На очень больших монорепах может потребоваться тюнинг индекса LanceDB под ваш профиль запросов.
 - Качество зависит от embedding/review моделей.
-- Retrieval основан на семантической близости текста, без AST/графа зависимостей.
+- Для языков вне JS/TS используется fallback на текстовые чанки.

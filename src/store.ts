@@ -26,8 +26,20 @@ function toStringSafe(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
+function toOptionalString(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
 function toNumberSafe(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function toChunkingStrategy(value: unknown): "ast" | "text" {
+  return value === "ast" ? "ast" : "text";
 }
 
 function toChunk(row: Record<string, unknown>): Chunk {
@@ -38,6 +50,9 @@ function toChunk(row: Record<string, unknown>): Chunk {
     startLine: toNumberSafe(row.startLine),
     endLine: toNumberSafe(row.endLine),
     content: toStringSafe(row.content),
+    nodeType: toOptionalString(row.nodeType),
+    symbol: toOptionalString(row.symbol),
+    chunkingStrategy: toChunkingStrategy(row.chunkingStrategy),
     contentHash: toStringSafe(row.contentHash),
     fileMtimeMs: toNumberSafe(row.fileMtimeMs),
     fileSize: toNumberSafe(row.fileSize),

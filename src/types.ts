@@ -5,6 +5,9 @@ export interface Chunk {
   startLine: number;
   endLine: number;
   content: string;
+  nodeType?: string;
+  symbol?: string;
+  chunkingStrategy: "ast" | "text";
   contentHash: string;
   fileMtimeMs: number;
   fileSize: number;
@@ -16,6 +19,7 @@ export interface IndexManifest {
   generatedAt: string;
   repoRoot: string;
   embeddingModel: string;
+  chunkingMode: "ast" | "text";
   chunkSize: number;
   overlapLines: number;
   excludedDirs: string[];
@@ -37,6 +41,9 @@ export interface IndexedChunkInput {
   startLine: number;
   endLine: number;
   content: string;
+  nodeType?: string;
+  symbol?: string;
+  chunkingStrategy: "ast" | "text";
   contentHash: string;
   fileMtimeMs: number;
   fileSize: number;
